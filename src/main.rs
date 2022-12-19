@@ -1,14 +1,13 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
 use std::{fs, io::Cursor};
-
 use rocket::{Response, http::Status};
 
 #[macro_use]
 extern crate rocket;
 
-#[get("/alive")]
-fn heart_beat() -> &'static str {
+#[get("/")]
+fn index() -> &'static str {
     "alive"
 }
 
@@ -26,20 +25,9 @@ fn receive_task(task_name: String, task_content: String) {
 
 #[post("/<task_name>/run", data = "<task_params>")]
 fn receive_task_params(task_name: String, task_params: String) -> Response<'static> {
-    let mut params = task_params.split_whitespace();
-
-    let start_param = match params.next() {
-        Some(val) => val,
-        None => return Response::build().status(Status::BadRequest).finalize()
-    };
-
-    let stop_param = match params.next() {
-        Some(val) => val,
-        None => return Response::build().status(Status::BadRequest).finalize()
-    };
-
+    let params = task_params.split_whitespace();
     let mut command = std::process::Command::new("python3");
-    command.arg(task_name).arg(start_param).arg(stop_param);
+    command.arg(task_name).args(params);
 
     println!("About to run command: {:?}", command);
     let output = match command.output() {
@@ -52,7 +40,7 @@ fn receive_task_params(task_name: String, task_params: String) -> Response<'stat
 
 fn main() {
     rocket::ignite()
-        .mount("/", routes![heart_beat])
+        .mount("/", routes![index])
         .mount("/task", routes![receive_task, receive_task_params])
         .launch();
 }
