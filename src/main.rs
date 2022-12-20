@@ -1,7 +1,8 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
 use std::{fs, io::Cursor};
-use rocket::{Response, http::Status};
+use rocket::config::Environment;
+use rocket::{Response, http::Status, Config};
 
 #[macro_use]
 extern crate rocket;
@@ -39,7 +40,14 @@ fn receive_task_params(task_name: String, task_params: String) -> Response<'stat
 }
 
 fn main() {
-    rocket::ignite()
+    let ip = local_ip_address::local_ip().unwrap().to_string();
+
+    let config = Config::build(Environment::Development)
+        .address(ip)
+        .port(8000)
+        .unwrap();
+
+    rocket::custom(config)
         .mount("/", routes![index])
         .mount("/task", routes![receive_task, receive_task_params])
         .launch();
