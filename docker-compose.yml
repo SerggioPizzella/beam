@@ -1,0 +1,29 @@
+version: "3"
+services:
+
+  beam1:
+    build: ./
+    restart: unless-stopped
+    ports:
+      - "3001:8000"
+    volumes:
+      - filesafe:/usr/src/beam1
+    networks:
+      - rustcompute
+  
+  beam2:
+    build: ./
+    restart: unless-stopped
+    ports:
+      - "3002:8000"
+    volumes:
+      - filesafe:/usr/src/beam2
+    networks:
+      - rustcompute
+
+
+networks:
+  rustcompute:
+
+volumes:
+  filesafe:
